@@ -154,7 +154,7 @@ const collectDurationPromise = (name: string, func: (...args: any) => Promise<an
       end()
       return res
     } catch (err) {
-      console.error('Error in timed startup function: ' + name, err)
+      console.error('Error in timed startup function:', name, err)
       throw err
     }
   }
@@ -265,7 +265,7 @@ function configureApp (app: ReturnType<typeof express>, seq: typeof sequelize) {
   }
 
   /* /infrastructure directory browsing */
-  app.use('/infrastructure', serveIndexMiddleware, serveIndex('infrastructure', { icons: true, view: 'details', filter: (filename) => filename !== 'README.md' }))
+  app.use('/infrastructure', serveIndexMiddleware, ((req, res) => res.status(403).send("Directory listing is forbidden")) => filename !== 'README.md' }))
   app.use('/infrastructure', verify.accessControlChallenges())
   app.use('/infrastructure', (req: Request, res: Response, next: NextFunction) => {
     const filePath = path.resolve('infrastructure', path.normalize(req.path).replace(/^[\\/]+/, ''))
@@ -285,19 +285,19 @@ function configureApp (app: ReturnType<typeof express>, seq: typeof sequelize) {
 
   // vuln-code-snippet start directoryListingChallenge accessLogDisclosureChallenge
   /* /ftp directory browsing and file download */ // vuln-code-snippet neutral-line directoryListingChallenge
-  app.use('/ftp', serveIndexMiddleware, serveIndex('ftp', { icons: true })) // vuln-code-snippet vuln-line directoryListingChallenge
+  app.use('/ftp', serveIndexMiddleware, ((req, res) => res.status(403).send("Directory listing is forbidden"))) // vuln-code-snippet vuln-line directoryListingChallenge
   app.use('/ftp(?!/quarantine)/:file', servePublicFiles()) // vuln-code-snippet vuln-line directoryListingChallenge
   app.use('/ftp/quarantine/:file', serveQuarantineFiles()) // vuln-code-snippet neutral-line directoryListingChallenge
 
-  app.use('/.well-known', serveIndexMiddleware, serveIndex('.well-known', { icons: true, view: 'details' }))
+  app.use('/.well-known', serveIndexMiddleware, ((req, res) => res.status(403).send("Directory listing is forbidden")))
   app.use('/.well-known', express.static('.well-known'))
 
   /* /encryptionkeys directory browsing */
-  app.use('/encryptionkeys', serveIndexMiddleware, serveIndex('encryptionkeys', { icons: true, view: 'details' }))
+  app.use('/encryptionkeys', serveIndexMiddleware, ((req, res) => res.status(403).send("Directory listing is forbidden")))
   app.use('/encryptionkeys/:file', serveKeyFiles())
 
   /* /logs directory browsing */ // vuln-code-snippet neutral-line accessLogDisclosureChallenge
-  app.use('/support/logs', serveIndexMiddleware, serveIndex('logs', { icons: true, view: 'details' })) // vuln-code-snippet vuln-line accessLogDisclosureChallenge
+  app.use('/support/logs', serveIndexMiddleware, ((req, res) => res.status(403).send("Directory listing is forbidden"))) // vuln-code-snippet vuln-line accessLogDisclosureChallenge
   app.use('/support/logs', verify.accessControlChallenges()) // vuln-code-snippet hide-line
   app.use('/support/logs/:file', serveLogFiles()) // vuln-code-snippet vuln-line accessLogDisclosureChallenge
 
